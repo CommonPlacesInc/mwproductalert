@@ -52,7 +52,7 @@ if errors:
     errors.insert(0, "ERRORS DETECTED")
     msg = MIMEText('\n'.join(errors))
 else:
-    msg = MIMEText('\n'.join("ERRORS DETECTED"))
+    msg = MIMEText("NO ERRORS DETECTED")
 
 msg['Subject'] = 'Merchant Warhouse Product Page Status'
 msg['From'] = 'billm@commonplaces.com'
