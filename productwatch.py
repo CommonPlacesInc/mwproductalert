@@ -17,7 +17,8 @@ PRODUCT_FEATURES = [
     u'Linux operating system, which allows for fast and affordable software changes, updates and customization ',
     u'PC style components, such as host based USB and Serial Ports, allow for easy hardware integration ',
     u'Superior terminal security supporting up to 1024-bit SSL encryption  at the time of card swipe eliminating the need for 3rd party processing  of transactions ',
-    u'CISP validated providing the most secure terminal on the market today ', u'Modular design allowing a single terminal to offer multiple communication options ',
+    u'CISP validated providing the most secure terminal on the market today ',
+    u'Modular design allowing a single terminal to offer multiple communication options ',
     u'Ability to utilize every day USB devices for integration into the terminal with little or no special software changes'
 ]
 
@@ -28,25 +29,25 @@ r = requests.get(PRODUCT_URL)
 if r.status_code == 200:
     body = BeautifulSoup(r.text).body
 
-    if not len(body('img', attrs={"src": PRODUCT_IMAGE})):
-        errors.append("Image not found")
-    try:
-        found_summary = [p.get_text() for p in body('div', class_="pane-field-product-description")[0]('p')]
-    except (IndexError, AttributeError) as e:
-        errors.append("Summary not found")
-    try:
-        found_features = [li.get_text() for li in body('div', class_="pane-field-product-features")[0].ul('li')]
-    except (IndexError, AttributeError) as e:
-        errors.append("Features not found")
-
-    if not (all(distance(a, b) < 10 for a, b in zip(found_summary, PRODUCT_SUMMARY))):
-        errors.append("Summaries differ")
-    if not (all(distance(a, b) < 10 for a, b in zip(found_features, PRODUCT_FEATURES))):
-        errors.append("Features differ")
-
+    if body:
+        if not len(body('img', attrs={"src": PRODUCT_IMAGE})):
+            errors.append("Image not found")
+        try:
+            found_summary = [p.get_text() for p in body('div', class_="pane-field-product-description")[0]('p')]
+            if (any(distance(a, b) > 10 for a, b in zip(found_summary, PRODUCT_SUMMARY))):
+                errors.append("Summaries differ")
+        except (IndexError, AttributeError) as e:
+            errors.append("Summary not found")
+        try:
+            found_features = [li.get_text() for li in body('div', class_="pane-field-product-features")[0].ul('li')]
+            if (any(distance(a, b) > 10 for a, b in zip(found_features, PRODUCT_FEATURES))):
+                errors.append("Features differ")
+        except (IndexError, AttributeError) as e:
+            errors.append("Features not found")
+    else:
+        errors.append("No body content found")
 else:
     errors.append("Bad status: %d" % r.status_code)
-
 
 if errors:
     errors.insert(0, "ERRORS DETECTED")
@@ -55,9 +56,9 @@ else:
     msg = MIMEText("NO ERRORS DETECTED")
 
 msg['Subject'] = 'Merchant Warhouse Product Page Status'
-msg['From'] = 'billm@commonplaces.com'
+msg['From'] = 'root@commonplaces.com'
 msg['To'] = 'billm@commonplaces.com'
 
 s = smtplib.SMTP('localhost')
-s.sendmail('billm@commonplaces.com', ['billm@commonplaces.com'], msg.as_string())
+s.sendmail('root@commonplaces.com', ['billm@commonplaces.com'], msg.as_string())
 s.quit()
